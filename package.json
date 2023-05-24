@@ -1,0 +1,19 @@
+{
+  "name": "stacktical-dsla-oracle-travel",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darrylhansen/stacktical-dsla-oracle-travel.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darrylhansen/stacktical-dsla-oracle-travel/issues"
+  },
+  "homepage": "https://github.com/darrylhansen/stacktical-dsla-oracle-travel#readme"
+}

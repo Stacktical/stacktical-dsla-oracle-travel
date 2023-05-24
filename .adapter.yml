@@ -1,0 +1,13 @@
+name: DSLA Protocol's Travel Service Level Agreement (SLA)
+description: A Travel Parameter Chainlink external adapter for DSLA Protocol.
+node_identifier: dsla-oracle-travel
+platforms:
+  - GCP Functions
+data_sources:
+  - name: VisualCrossing
+    url: https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history
+parameters:
+  - sla_address
+  - network_name
+  - period_start
+  - period_end
