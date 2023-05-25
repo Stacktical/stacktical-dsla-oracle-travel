@@ -49,18 +49,7 @@ testFetchData();
 /*
 MANUAL TESTING DATA FOR CALLS TO API PROVIDERS
 
-## CURL New York, NY for Period 0; maxDeviation 5%; 4/7 not met (2x temperature, 2x precipitation), 57.1% deviaiton
-curl --location --request POST 'http://localhost:6070/test-sli' --header 'Content-Type: application/json' --data-raw '{"data": {"period_start": "1666569600", "period_end": "1667174399", "location": "40.7128,-74.0060", "maxDeviation": 5000000, "coordinates": {"lat": 40.7128, "long": -74.0060}}}'
-
-## CURL Maimi, FL for Period 0; 0/7 not met (precipitation), 0% deviation
-curl --location --request POST 'http://localhost:6070/test-sli' --header 'Content-Type: application/json' --data-raw '{"data": {"period_start": "1666569600", "period_end": "1667174399", "location": "25.7617,-80.1918", "maxDeviation": 5000000, "coordinates": {"lat": 25.7617, "long": -80.1918}}}'
-
-## CURL Nassau, Bahamas for Period 0; 2/7 not met (2 precipitation), 28.5% deviation
-curl --location --request POST 'http://localhost:6070/test-sli' --header 'Content-Type: application/json' --data-raw '{"data": {"period_start": "1666569600", "period_end": "1667174399", "location": "25.059999,-77.345001", "maxDeviation": 5000000, "coordinates": {"lat": 25.059999, "long": -77.345001}}}'
-
-## CURL Cancun, Mexico for Period 0; 0/7 not met, 0% deviation
-curl --location --request POST 'http://localhost:6070/test-sli' --header 'Content-Type: application/json' --data-raw '{"data": {"period_start": "1666569600", "period_end": "1667174399", "location": "21.1743,-86.8466", "maxDeviation": 5000000, "coordinates": {"lat": 21.1743, "long": -86.8466}}}'
-
+curl --location --request POST 'http://localhost:6070/test-sli' --header 'Content-Type: application/json' --data-raw '{ "data": { "coverageType": "temperature", "tripStartDate": "1666656000", "tripEndDate": "1667001600", "period_start": "1666569600", "period_end": "1667174399", "location": "25.7617,-80.1918", "maxDeviation": 5000000, "coordinates": { "lat": 25.7617, "long": -80.1918 } } }'
 
 ## DTK Periods
 Period 0

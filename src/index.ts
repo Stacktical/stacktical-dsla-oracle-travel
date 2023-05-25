@@ -1,5 +1,8 @@
-require('./env-validation');
-import express, { Request, Response } from 'express';
+require('dotenv').config();
+import * as Joi from 'joi';
+import { NETWORKS } from './constants';
+import * as express from 'express';
+import { Request, Response } from 'express';
 import axios from 'axios';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
@@ -7,6 +10,25 @@ import { SLAABI, MessengerABI } from './abis';
 
 // import { fetchVisualCrossingData, fetchOpenWeatherData, fetchWeatherbitData, fetchWeatherSourceData, fetchTomorrowIOData } from './weather-data-sources';
 import { fetchVisualCrossingData } from './weather-data-sources';
+
+const networksObject = Object.keys(NETWORKS).reduce(
+    (r, networkName) => ({
+        ...r,
+        [`${networkName.toUpperCase()}_URI`]: Joi.string().uri().required(),
+    }),
+    {}
+);
+
+const schema = Joi.object({
+    IPFS_GATEWAY_URI: Joi.string().uri().required(),
+    ...networksObject,
+}).unknown();
+
+const { error } = schema.validate(process.env);
+
+if (error) {
+    throw new Error(`Configuration error: ${error.message}`);
+}
 
 type SLAData = {
     serviceName: string;
