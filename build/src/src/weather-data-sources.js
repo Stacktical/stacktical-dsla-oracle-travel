@@ -1,56 +1,42 @@
+"use strict";
 // weather-data-sources.ts
-
-import axios from 'axios';
-
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.fetchVisualCrossingData = void 0;
+const axios_1 = __importDefault(require("axios"));
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
 const WEATHERSOURCE_API_KEY = process.env.WEATHERSOURCE_API_KEY;
 const TOMORROW_API_KEY = process.env.TOMORROW_API_KEY;
 const VISUALCROSSING_API_KEY = process.env.VISUALCROSSING_API_KEY;
-
-interface APIDataParams {
-    location: string;
-    startDate: string;
-    endDate: string;
-    fields?: string;
-    unitScale?: string;
-}
-
-function processVisualCrossingData(actualData: any, historicalData: any) {
+function processVisualCrossingData(actualData, historicalData) {
     const locationKey = Object.keys(actualData.locations)[0];
     const actualValues = actualData.locations[locationKey].values;
     const historicalValues = historicalData.locations[locationKey].values;
-
-    const dailyData = actualValues.map((day: any) => {
+    const dailyData = actualValues.map((day) => {
         const date = new Date(day.datetime)
             .toISOString()
             .split('T')[0]
             .substring(5); // Get MM-DD
         const actualDate = day.datetime;
-
-        const historicalDays = historicalValues.filter((historicalDay: any) => {
+        const historicalDays = historicalValues.filter((historicalDay) => {
             const historicalDate = new Date(historicalDay.datetime)
                 .toISOString()
                 .split('T')[0]
                 .substring(5); // Get MM-DD
             return historicalDate === date;
         });
-
         const historicalTemperature = {
-            avg:
-                historicalDays.reduce((sum: number, day: any) => sum + day.temp, 0) /
+            avg: historicalDays.reduce((sum, day) => sum + day.temp, 0) /
                 historicalDays.length,
-            min:
-                historicalDays.reduce((sum: number, day: any) => sum + day.mint, 0) /
+            min: historicalDays.reduce((sum, day) => sum + day.mint, 0) /
                 historicalDays.length,
-            max:
-                historicalDays.reduce((sum: number, day: any) => sum + day.maxt, 0) /
+            max: historicalDays.reduce((sum, day) => sum + day.maxt, 0) /
                 historicalDays.length,
         };
-
-        const historicalPrecipitation =
-            historicalDays.reduce((sum: number, day: any) => sum + day.precip, 0) /
+        const historicalPrecipitation = historicalDays.reduce((sum, day) => sum + day.precip, 0) /
             historicalDays.length;
-
         return {
             date: actualDate,
             actualTemperature: {
@@ -63,45 +49,33 @@ function processVisualCrossingData(actualData: any, historicalData: any) {
             historicalPrecipitation,
         };
     });
-
     return dailyData;
 }
-
-export async function fetchVisualCrossingData(params: APIDataParams) {
+async function fetchVisualCrossingData(params) {
     const { location, startDate, endDate, fields, unitScale } = params;
-
-    const baseUrl =
-        'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history';
+    const baseUrl = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history';
     const endpoint = `${baseUrl}?location=${location}&startDateTime=${startDate}T00:00:00&endDateTime=${endDate}T00:00:00&aggregateHours=24&unitGroup=us&contentType=json&key=${VISUALCROSSING_API_KEY}`;
-
     // fetch historical data
     const historicalPromises = [];
     for (let i = 0; i < 10; i++) {
-        const historicalStartDate = new Date(
-            new Date(startDate).setFullYear(new Date(startDate).getFullYear() - i)
-        )
+        const historicalStartDate = new Date(new Date(startDate).setFullYear(new Date(startDate).getFullYear() - i))
             .toISOString()
             .split('T')[0];
-        const historicalEndDate = new Date(
-            new Date(endDate).setFullYear(new Date(endDate).getFullYear() - i)
-        )
+        const historicalEndDate = new Date(new Date(endDate).setFullYear(new Date(endDate).getFullYear() - i))
             .toISOString()
             .split('T')[0];
         const historicalEndpoint = `${baseUrl}?location=${location}&startDateTime=${historicalStartDate}T00:00:00&endDateTime=${historicalEndDate}T00:00:00&aggregateHours=24&unitGroup=us&contentType=json&key=${VISUALCROSSING_API_KEY}`;
-        historicalPromises.push(axios.get(historicalEndpoint));
+        historicalPromises.push(axios_1.default.get(historicalEndpoint));
     }
-
     try {
-        const actualResponse = await axios.get(endpoint);
+        const actualResponse = await axios_1.default.get(endpoint);
         const historicalResponses = await Promise.all(historicalPromises);
-
         // Combine historical data
         const locationKey = Object.keys(actualResponse.data.locations)[0];
         const historicalValues = [];
         for (const response of historicalResponses) {
             historicalValues.push(...response.data.locations[locationKey].values);
         }
-
         const historicalData = {
             locations: {
                 [locationKey]: {
@@ -109,21 +83,15 @@ export async function fetchVisualCrossingData(params: APIDataParams) {
                 },
             },
         };
-
-        const processedData = processVisualCrossingData(
-            actualResponse.data,
-            historicalData
-        );
-        console.log(
-            '[PROCESSED-DATA] Processed Visual Crossing data:',
-            processedData
-        );
+        const processedData = processVisualCrossingData(actualResponse.data, historicalData);
+        console.log('[PROCESSED-DATA] Processed Visual Crossing data:', processedData);
         return processedData;
-    } catch (error) {
+    }
+    catch (error) {
         throw error;
     }
 }
-
+exports.fetchVisualCrossingData = fetchVisualCrossingData;
 /*
 export async function fetchTomorrowIOData(params: APIDataParams) {
     const { location, startDate, endDate } = params;
@@ -174,7 +142,6 @@ export async function fetchTomorrowIOData(params: APIDataParams) {
     }
 }
 */
-
 /*
 export async function fetchWeatherSourceAPIsData(params: APIDataParams) {
     const { location, startDate, endDate, fields, unitScale } = params;
@@ -230,7 +197,6 @@ export async function fetchWeatherSourceAPIsData(params: APIDataParams) {
     }
 }
 */
-
 /*
 export async function fetchOpenWeatherMapData(params: APIDataParams) {
     const { location, startDate, endDate, fields, unitScale } = params;
@@ -278,3 +244,4 @@ export async function fetchOpenWeatherMapData(params: APIDataParams) {
     }
 }
 */
+//# sourceMappingURL=weather-data-sources.js.map

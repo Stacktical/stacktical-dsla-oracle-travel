@@ -50,7 +50,6 @@ exports.__esModule = true;
 require('dotenv').config();
 var Joi = require("joi");
 var constants_1 = require("./constants");
-var express = require("express");
 var axios_1 = require("axios");
 var web3_1 = require("web3");
 var abis_1 = require("./abis");
@@ -67,13 +66,17 @@ if (error) {
 }
 function getSLAData(address, networkName) {
     return __awaiter(this, void 0, void 0, function () {
-        var web3, slaContract, periodType, ipfsCID, messengerAddress, data;
+        var networkURI, web3, slaContract, periodType, ipfsCID, messengerAddress, data;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log('[SLA] Contract address:', address); // Log the contract address
                     console.log('[SLA] Network name:', networkName); // Log the network name
-                    web3 = new web3_1["default"](process.env["".concat(networkName.toUpperCase(), "_URI")]);
+                    networkURI = constants_1.NETWORKS[networkName];
+                    if (!networkURI) {
+                        throw new Error("No network URI found for network: ".concat(networkName));
+                    }
+                    web3 = new web3_1["default"](networkURI);
                     slaContract = new web3.eth.Contract(abis_1.SLAABI, address);
                     console.log('[SLA] Successfully instantiated web3 and slaContract variables'); // Log progress
                     return [4 /*yield*/, slaContract.methods.periodType().call()];
@@ -98,12 +101,16 @@ function getSLAData(address, networkName) {
 }
 function getMessengerPrecision(messengerAddress, networkName) {
     return __awaiter(this, void 0, void 0, function () {
-        var web3, messenger;
+        var networkURI, web3, messenger;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log('[MESSENGER] networkName:', networkName);
-                    web3 = new web3_1["default"](process.env["".concat(networkName.toUpperCase(), "_URI")]);
+                    networkURI = constants_1.NETWORKS[networkName];
+                    if (!networkURI) {
+                        throw new Error("No network URI found for network: ".concat(networkName));
+                    }
+                    web3 = new web3_1["default"](networkURI);
                     messenger = new web3.eth.Contract(abis_1.MessengerABI, messengerAddress);
                     return [4 /*yield*/, messenger.methods.messengerPrecision().call()];
                 case 1: return [2 /*return*/, _a.sent()];
@@ -111,8 +118,6 @@ function getMessengerPrecision(messengerAddress, networkName) {
         });
     });
 }
-var app = express();
-app.use(express.json());
 function fetchWeatherData(location, startDate, endDate) {
     return __awaiter(this, void 0, void 0, function () {
         var startDateISO, endDateISO, visualCrossingData, weatherDataSources;
@@ -217,19 +222,22 @@ function processDataAndCalculateSLI(weatherDataSources, messengerPrecision, slaD
     console.log('[SLI] SLI:', SLI);
     return Math.round(SLI * messengerPrecision);
 }
-app.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var data, periodStart, periodEnd, networkName, coverageType, requestData, slaData, location_1, locationString, messengerPrecision, weatherData, SLI, error_1;
+exports['dsla-oracle-travel'] = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var data, periodStart, periodEnd, slaAddress, networkName, requestData, slaData, location_1, locationString, messengerPrecision, weatherData, SLI, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 4, , 5]);
                 data = req.body.data;
-                periodStart = data.period_start, periodEnd = data.period_end, networkName = data.network_name, coverageType = data.coverageType;
+                periodStart = data.period_start, periodEnd = data.period_end, slaAddress = data.address, networkName = data.network_name;
                 // Log entire request body
-                console.log("[POST] Request received with periodStart: ".concat(periodStart, ", periodEnd: ").concat(periodEnd, ", networkName: ").concat(networkName, ", coverageType: ").concat(coverageType));
+                console.log("[POST] Request received with periodStart: ".concat(periodStart, ", periodEnd: ").concat(periodEnd, ", networkName: ").concat(networkName));
                 console.log('[POST] Request body:', req.body);
                 requestData = {
-                    sla_address: data.sla_address
+                    sla_address: slaAddress,
+                    network_name: networkName,
+                    sla_monitoring_start: periodStart,
+                    sla_monitoring_end: periodEnd
                 };
                 return [4 /*yield*/, getSLAData(requestData.sla_address, networkName)];
             case 1:
@@ -249,64 +257,21 @@ app.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 console.log("[POST] Fetched weather data:", weatherData);
                 SLI = processDataAndCalculateSLI(weatherData, messengerPrecision, slaData);
                 console.log('[POST] Calculated SLI:', SLI);
-                res.status(200).json({ data: { result: SLI } });
+                res.send({
+                    jobRunID: req.body.id,
+                    data: { result: SLI }
+                });
                 return [3 /*break*/, 5];
             case 4:
                 error_1 = _a.sent();
                 console.error('Error:', error_1.message);
-                res.status(500).json({ error: error_1.message });
+                res.send({
+                    jobRunID: req.body.id,
+                    data: { result: null },
+                    error: error_1.message
+                });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
     });
-}); });
-// Testing endpoint for use when adding new data sources to allow testing without full SLA / DTK deployment
-app.post('/test-sli', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var data, periodStart, periodEnd, location_2, maxDeviation, coordinates, coverageType, tripStartDate, tripEndDate, precision, weatherData, customSLAData, SLI, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                data = req.body.data;
-                periodStart = data.period_start, periodEnd = data.period_end, location_2 = data.location, maxDeviation = data.maxDeviation, coordinates = data.coordinates, coverageType = data.coverageType, tripStartDate = data.tripStartDate, tripEndDate = data.tripEndDate;
-                precision = 1000000;
-                console.log('[POST] Request body:', req.body);
-                return [4 /*yield*/, fetchWeatherData(location_2, periodStart, periodEnd)];
-            case 1:
-                weatherData = _a.sent();
-                console.log("[POST] Fetched weather data:", weatherData);
-                customSLAData = {
-                    serviceName: "Test Service",
-                    serviceDescription: "Test Service Description",
-                    serviceImage: "",
-                    serviceURL: "",
-                    serviceAddress: "",
-                    serviceTicker: "",
-                    serviceUseTestExternalAdapter: false,
-                    serviceSliMockingPlan: [],
-                    periodType: 0,
-                    messengerAddress: "",
-                    coverageType: coverageType,
-                    tripStartDate: tripStartDate,
-                    tripEndDate: tripEndDate,
-                    coordinates: coordinates,
-                    maxDeviation: maxDeviation
-                };
-                SLI = processDataAndCalculateSLI(weatherData, precision, customSLAData);
-                res.status(200).json({ data: { result: SLI } });
-                return [3 /*break*/, 3];
-            case 2:
-                error_2 = _a.sent();
-                console.error('Error:', error_2.message);
-                res.status(500).json({ error: error_2.message });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); });
-var HOST = process.env.HOST || '0.0.0.0';
-var PORT = Number(process.env.PORT) || 6070;
-app.listen(PORT, HOST, function () {
-    console.log("Server is running on port ".concat(PORT));
-});
-console.log("Trying to start server on port ".concat(PORT));
+}); };

@@ -48,18 +48,28 @@ function processVisualCrossingData(actualData, historicalData) {
     var actualValues = actualData.locations[locationKey].values;
     var historicalValues = historicalData.locations[locationKey].values;
     var dailyData = actualValues.map(function (day) {
-        var date = new Date(day.datetime).toISOString().split("T")[0].substring(5); // Get MM-DD
+        var date = new Date(day.datetime)
+            .toISOString()
+            .split('T')[0]
+            .substring(5); // Get MM-DD
         var actualDate = day.datetime;
         var historicalDays = historicalValues.filter(function (historicalDay) {
-            var historicalDate = new Date(historicalDay.datetime).toISOString().split("T")[0].substring(5); // Get MM-DD
+            var historicalDate = new Date(historicalDay.datetime)
+                .toISOString()
+                .split('T')[0]
+                .substring(5); // Get MM-DD
             return historicalDate === date;
         });
         var historicalTemperature = {
-            avg: historicalDays.reduce(function (sum, day) { return sum + day.temp; }, 0) / historicalDays.length,
-            min: historicalDays.reduce(function (sum, day) { return sum + day.mint; }, 0) / historicalDays.length,
-            max: historicalDays.reduce(function (sum, day) { return sum + day.maxt; }, 0) / historicalDays.length
+            avg: historicalDays.reduce(function (sum, day) { return sum + day.temp; }, 0) /
+                historicalDays.length,
+            min: historicalDays.reduce(function (sum, day) { return sum + day.mint; }, 0) /
+                historicalDays.length,
+            max: historicalDays.reduce(function (sum, day) { return sum + day.maxt; }, 0) /
+                historicalDays.length
         };
-        var historicalPrecipitation = historicalDays.reduce(function (sum, day) { return sum + day.precip; }, 0) / historicalDays.length;
+        var historicalPrecipitation = historicalDays.reduce(function (sum, day) { return sum + day.precip; }, 0) /
+            historicalDays.length;
         return {
             date: actualDate,
             actualTemperature: {
@@ -82,12 +92,16 @@ function fetchVisualCrossingData(params) {
             switch (_b.label) {
                 case 0:
                     location = params.location, startDate = params.startDate, endDate = params.endDate, fields = params.fields, unitScale = params.unitScale;
-                    baseUrl = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history";
+                    baseUrl = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history';
                     endpoint = "".concat(baseUrl, "?location=").concat(location, "&startDateTime=").concat(startDate, "T00:00:00&endDateTime=").concat(endDate, "T00:00:00&aggregateHours=24&unitGroup=us&contentType=json&key=").concat(VISUALCROSSING_API_KEY);
                     historicalPromises = [];
                     for (i = 0; i < 10; i++) {
-                        historicalStartDate = new Date(new Date(startDate).setFullYear(new Date(startDate).getFullYear() - i)).toISOString().split('T')[0];
-                        historicalEndDate = new Date(new Date(endDate).setFullYear(new Date(endDate).getFullYear() - i)).toISOString().split('T')[0];
+                        historicalStartDate = new Date(new Date(startDate).setFullYear(new Date(startDate).getFullYear() - i))
+                            .toISOString()
+                            .split('T')[0];
+                        historicalEndDate = new Date(new Date(endDate).setFullYear(new Date(endDate).getFullYear() - i))
+                            .toISOString()
+                            .split('T')[0];
                         historicalEndpoint = "".concat(baseUrl, "?location=").concat(location, "&startDateTime=").concat(historicalStartDate, "T00:00:00&endDateTime=").concat(historicalEndDate, "T00:00:00&aggregateHours=24&unitGroup=us&contentType=json&key=").concat(VISUALCROSSING_API_KEY);
                         historicalPromises.push(axios_1["default"].get(historicalEndpoint));
                     }
@@ -114,7 +128,7 @@ function fetchVisualCrossingData(params) {
                             _a)
                     };
                     processedData = processVisualCrossingData(actualResponse.data, historicalData);
-                    console.log("[PROCESSED-DATA] Processed Visual Crossing data:", processedData);
+                    console.log('[PROCESSED-DATA] Processed Visual Crossing data:', processedData);
                     return [2 /*return*/, processedData];
                 case 4:
                     error_1 = _b.sent();
@@ -276,4 +290,4 @@ export async function fetchOpenWeatherMapData(params: APIDataParams) {
         throw error;
     }
 }
-*/ 
+*/
