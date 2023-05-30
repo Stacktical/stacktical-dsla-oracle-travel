@@ -19,14 +19,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/darrylhansen/stacktical-dsla-oracle-travel.git"
+    "url": "git+https://github.com/stacktical/stacktical-dsla-oracle-travel.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/darrylhansen/stacktical-dsla-oracle-travel/issues"
+    "url": "https://github.com/stacktical/stacktical-dsla-oracle-travel/issues"
   },
-  "homepage": "https://github.com/darrylhansen/stacktical-dsla-oracle-travel#readme",
+  "homepage": "https://github.com/stacktical/stacktical-dsla-oracle-travel#readme",
   "keywords": [
     "travel",
     "chainlink",
